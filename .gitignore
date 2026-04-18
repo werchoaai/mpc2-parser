@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+
+# Virtual env
+.venv/
+venv/
+
+# Streamlit secrets — NEVER commit
+.streamlit/secrets.toml
+
+# Local outputs & caches
+out/*
+!out/full_evaluation.json
+*.xlsx~
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Customer data (never commit ASCs/HADs)
+*.ASC
+*.HAD
+*.asc
+*.had

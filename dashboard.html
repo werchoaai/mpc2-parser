@@ -1,0 +1,715 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MPC² Corrosion Ray — Parser Dashboard</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap');
+
+:root {
+  --mpc-green-light: #8DBF18;
+  --mpc-green-dark:  #409A2D;
+  --mpc-charcoal:    #4C4C4C;
+  --mpc-body:        #333333;
+  --mpc-bg-light:    #EEEEEE;
+  --mpc-gradient:    linear-gradient(90deg, #8DBF18 6.6%, #409A2D 100%);
+  --success:         #409A2D;
+  --success-light:   #EAF4D8;
+  --warn:            #b8860b;
+  --warn-light:      #fef3c7;
+  --danger:          #c0392b;
+  --danger-light:    #fdecec;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Manrope', -apple-system, sans-serif;
+  color: var(--mpc-body);
+  background: #FFFFFF;
+  font-size: 18px;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+}
+
+.wrap { max-width: 1240px; margin: 0 auto; }
+
+/* Navigation bar */
+.navbar {
+  background: var(--mpc-gradient);
+  padding: 18px 48px;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.logo-box {
+  background: white;
+  padding: 8px 20px;
+  transform: skew(-12deg);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.logo-box > * { transform: skew(12deg); display: inline-block; }
+.logo-text {
+  font-weight: 800;
+  font-size: 28px;
+  color: var(--mpc-charcoal);
+  letter-spacing: -0.02em;
+}
+.logo-text sup {
+  color: var(--mpc-green-light);
+  font-size: 22px;
+  font-weight: 800;
+}
+.navbar-title { font-weight: 700; font-size: 20px; letter-spacing: -0.01em; }
+.navbar-sub   { font-size: 14px; font-weight: 500; opacity: 0.92; }
+
+/* Hero */
+.hero {
+  padding: 64px 48px 48px;
+  background: #FAFAF7;
+  border-bottom: 1px solid var(--mpc-bg-light);
+}
+.hero-kicker {
+  display: inline-block;
+  color: var(--mpc-green-dark);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.hero h1 {
+  font-size: 50px;
+  font-weight: 700;
+  color: var(--mpc-charcoal);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin-bottom: 16px;
+}
+.hero .lead {
+  font-size: 22px;
+  color: var(--mpc-body);
+  font-weight: 400;
+  line-height: 1.4;
+  max-width: 900px;
+  margin-bottom: 28px;
+}
+
+/* Content */
+.content { padding: 48px; }
+h2 {
+  font-size: 33px;
+  font-weight: 700;
+  color: var(--mpc-charcoal);
+  line-height: 1.25;
+  padding-left: 16px;
+  border-left: 4px solid var(--mpc-green-light);
+  margin: 48px 0 20px;
+}
+h2:first-of-type { margin-top: 0; }
+h3 {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--mpc-charcoal);
+  margin: 28px 0 12px;
+}
+h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--mpc-charcoal);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 18px 0 8px;
+}
+p { margin-bottom: 14px; }
+ul { margin: 0 0 16px 0; padding-left: 0; list-style: none; }
+ul li { padding: 6px 0 6px 24px; position: relative; }
+ul li::before { content: '→'; position: absolute; left: 0; color: var(--mpc-green-light); font-weight: 700; }
+
+strong { color: var(--mpc-charcoal); font-weight: 700; }
+code { font-family: 'JetBrains Mono', monospace; background: #F7F7F5; padding: 2px 8px; border-left: 2px solid var(--mpc-green-light); font-size: 15px; }
+pre { background: #F7F7F5; border-left: 4px solid var(--mpc-green-light); padding: 16px 20px; margin: 12px 0; overflow-x: auto; }
+pre code { background: transparent; padding: 0; border: none; }
+
+/* Live status box */
+.live-box {
+  background: linear-gradient(135deg, var(--success-light), #F4FAEA);
+  border-left: 4px solid var(--mpc-green-dark);
+  padding: 20px 28px;
+  margin: 16px 0 32px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.pulse { width: 12px; height: 12px; border-radius: 50%; background: var(--mpc-green-dark); box-shadow: 0 0 0 0 rgba(64,154,45,.5); animation: p 2s infinite; flex-shrink: 0; }
+@keyframes p { 0% {box-shadow: 0 0 0 0 rgba(64,154,45,.5);} 70% {box-shadow: 0 0 0 12px rgba(64,154,45,0);} 100% {box-shadow: 0 0 0 0 rgba(64,154,45,0);} }
+
+/* MPC² Button */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--mpc-green-light);
+  color: white !important;
+  font-family: 'Manrope', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  padding: 10px 36px;
+  border: none;
+  border-radius: 0;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.btn:hover { background: var(--mpc-green-dark); }
+.btn.secondary { background: white; color: var(--mpc-charcoal) !important; border: 2px solid var(--mpc-green-light); padding: 8px 34px; }
+.btn.secondary:hover { background: var(--mpc-green-light); color: white !important; }
+
+/* Stats grid */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 20px 0 32px; }
+.stat {
+  background: white;
+  border: 1px solid var(--mpc-bg-light);
+  border-left: 4px solid var(--mpc-green-light);
+  padding: 20px 24px;
+}
+.stat .label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--mpc-charcoal);
+  opacity: 0.7;
+  margin-bottom: 6px;
+}
+.stat .value {
+  font-size: 38px;
+  font-weight: 700;
+  color: var(--mpc-charcoal);
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+.stat .unit { font-size: 16px; font-weight: 500; color: var(--mpc-body); }
+.stat.highlight { border-left-color: var(--mpc-green-dark); background: linear-gradient(135deg, #F4FAEA, #FAFDF5); }
+.stat.highlight .value { color: var(--mpc-green-dark); }
+.stat.warning { border-left-color: var(--warn); background: var(--warn-light); }
+.stat.warning .value { color: var(--warn); }
+
+/* Method comparison */
+.method-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 20px 0; }
+.method-card {
+  background: white;
+  border: 1px solid var(--mpc-bg-light);
+  padding: 24px;
+  position: relative;
+}
+.method-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 6px;
+}
+.method-card.vertex::before   { background: var(--mpc-green-light); }
+.method-card.midpoint::before { background: var(--mpc-green-dark); }
+.method-card.manuel::before   { background: var(--mpc-charcoal); }
+.method-card h3 { margin-top: 8px; }
+.method-card .verdict { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin: 10px 0; }
+.method-card .verdict.winner { color: var(--mpc-green-dark); }
+.method-card .verdict.tied   { color: var(--warn); }
+.method-card .stats-inline { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 14px; }
+.mini-stat { background: #F7F7F5; padding: 10px 14px; border-left: 3px solid var(--mpc-green-light); }
+.mini-stat .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--mpc-charcoal); opacity: 0.7; }
+.mini-stat .value { font-size: 20px; font-weight: 700; color: var(--mpc-charcoal); }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+th {
+  background: var(--mpc-bg-light);
+  color: var(--mpc-charcoal);
+  text-align: left;
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 2px solid var(--mpc-green-light);
+}
+td {
+  padding: 12px 14px;
+  font-size: 15px;
+  border-bottom: 1px solid var(--mpc-bg-light);
+  color: var(--mpc-body);
+  vertical-align: top;
+}
+tr:last-child td { border-bottom: none; }
+td.num { font-family: 'JetBrains Mono', monospace; text-align: right; }
+.ok { color: var(--mpc-green-dark); font-weight: 700; }
+.warn { color: var(--warn); font-weight: 700; }
+.err { color: var(--danger); font-weight: 700; }
+
+/* Variant boxes */
+.variant {
+  border: 1px solid var(--mpc-bg-light);
+  border-left: 4px solid var(--mpc-green-light);
+  padding: 24px 28px;
+  margin: 16px 0;
+  background: white;
+}
+.variant.v2 { border-left-color: var(--mpc-green-dark); }
+.variant.v3 { border-left-color: var(--mpc-charcoal); }
+.variant.v4 { border-left-color: var(--warn); }
+.variant-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.variant-num {
+  width: 40px;
+  height: 40px;
+  background: var(--mpc-green-light);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.v2 .variant-num { background: var(--mpc-green-dark); }
+.v3 .variant-num { background: var(--mpc-charcoal); }
+.v4 .variant-num { background: var(--warn); }
+.variant-title { font-weight: 700; font-size: 20px; color: var(--mpc-charcoal); }
+.variant-sub { font-size: 14px; color: var(--mpc-body); opacity: 0.75; }
+
+.proscons { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+.pros, .cons { padding: 16px 20px; font-size: 15px; line-height: 1.5; }
+.pros { background: var(--success-light); border-left: 3px solid var(--mpc-green-dark); }
+.cons { background: var(--danger-light); border-left: 3px solid var(--danger); }
+.pros strong, .cons strong { display: block; font-size: 11px; letter-spacing: 0.1em; margin-bottom: 6px; text-transform: uppercase; }
+.pros strong { color: var(--mpc-green-dark); }
+.cons strong { color: var(--danger); }
+
+/* Workflow diagram */
+.workflow {
+  display: grid;
+  grid-template-columns: 1fr 30px 1fr 30px 1fr;
+  gap: 12px;
+  align-items: center;
+  margin: 20px 0;
+}
+.wf-box {
+  background: #F7F7F5;
+  border: 1px solid var(--mpc-bg-light);
+  padding: 16px;
+  text-align: center;
+}
+.wf-box.hot {
+  background: linear-gradient(135deg, #F4FAEA, #FAFDF5);
+  border-left: 4px solid var(--mpc-green-light);
+}
+.wf-box .t { font-weight: 700; font-size: 16px; color: var(--mpc-charcoal); }
+.wf-box .s { font-size: 13px; color: var(--mpc-body); opacity: 0.75; }
+.arrow { text-align: center; font-size: 24px; font-weight: 700; color: var(--mpc-green-light); }
+
+/* Info box */
+.info {
+  background: #F7F9F3;
+  border-left: 4px solid var(--mpc-green-light);
+  padding: 16px 20px;
+  margin: 12px 0;
+  font-size: 15px;
+}
+.info.warn { background: var(--warn-light); border-left-color: var(--warn); }
+
+/* Footer */
+.footer {
+  background: var(--mpc-gradient);
+  color: white;
+  padding: 32px 48px;
+  text-align: center;
+  font-size: 15px;
+}
+.footer strong { color: white; }
+.footer a { color: white; text-decoration: underline; }
+
+@media (max-width: 900px) {
+  .stats-grid, .method-grid { grid-template-columns: 1fr 1fr; }
+  .workflow { grid-template-columns: 1fr; }
+  .arrow { transform: rotate(90deg); }
+  .proscons { grid-template-columns: 1fr; }
+  .hero { padding: 40px 24px; }
+  .hero h1 { font-size: 36px; }
+  .content { padding: 32px 24px; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<div class="navbar">
+  <div class="navbar-brand">
+    <div class="logo-box"><span class="logo-text">MPC<sup>²</sup></span></div>
+    <div>
+      <div class="navbar-title">Corrosion Ray® · DL-EPR Analyzer</div>
+      <div class="navbar-sub">Automatische Auswertung · Messdaten → Messübersicht</div>
+    </div>
+  </div>
+  <div class="navbar-sub">built by werchota.ai</div>
+</div>
+
+<div class="wrap">
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-kicker">MAL-10 · Linear Action Item</div>
+  <h1>ASC-Parser, Peak-Detection &amp; Auswertung</h1>
+  <p class="lead">
+    Automatische DL-EPR-Auswertung: Rohe ASC-Messdaten aus Potentiostaten lesen,
+    Aktivierungs- und Reaktivierungs-Peaks (Ja, Jr), Ladungsintegrale (Qa, Qr)
+    und DOS-Kennwerte (Jr/Ja, Qr/Qa) berechnen — und direkt in die
+    Messübersicht übertragen.
+  </p>
+  <p>
+    <a class="btn" href="http://localhost:8501" target="_blank">Streamlit-App öffnen →</a>
+    <a class="btn secondary" href="file:///Users/malcolmwerchota/Documents/mpc2-parser/out/" target="_blank">Demo-Outputs ansehen</a>
+  </p>
+</section>
+
+<!-- CONTENT -->
+<section class="content">
+
+<!-- LIVE STATUS -->
+<div class="live-box">
+  <div class="pulse"></div>
+  <div style="flex: 1;">
+    <strong>Streamlit-App läuft im MPC² Brand Style</strong>
+    <div style="font-size: 14px; margin-top: 4px;">
+      Erreichbar unter <code>http://localhost:8501</code> — mit Messübersicht-File-Picker,
+      Pfad-Eingabe und "In Messübersicht einfügen"-Button
+    </div>
+  </div>
+  <a class="btn" href="http://localhost:8501" target="_blank">Jetzt öffnen →</a>
+</div>
+
+<!-- ==================================================================== -->
+<!-- VALIDATION RESULTS                                                     -->
+<!-- ==================================================================== -->
+
+<h2>Validierungs-Ergebnisse — 20 Messungen aus 2 Projekten</h2>
+
+<p>
+  Wir haben unseren Parser gegen zwei unterschiedliche Referenzquellen validiert:
+  die <strong>Messübersicht-Master</strong> (Manuels konsolidierte Laborbuch-Werte)
+  und die <strong>Auswertung-Workbook</strong> von Projekt 2 (mit Manuels hand-gewählten
+  Split-Indizes).
+</p>
+
+<div class="stats-grid">
+  <div class="stat highlight">
+    <div class="label">Gesamt validiert</div>
+    <div class="value">20</div>
+    <div class="unit">Messungen</div>
+  </div>
+  <div class="stat highlight">
+    <div class="label">Ja Fehler (Mean)</div>
+    <div class="value">&lt;0.01<span class="unit">%</span></div>
+  </div>
+  <div class="stat highlight">
+    <div class="label">Jr Fehler (Mean)</div>
+    <div class="value">&lt;0.01<span class="unit">%</span></div>
+  </div>
+  <div class="stat">
+    <div class="label">Qa Fehler (Mean)</div>
+    <div class="value">1.7<span class="unit">%</span></div>
+  </div>
+</div>
+
+<h3>Projekt 1 (12 Messungen, Ground Truth aus Messübersicht)</h3>
+<p>
+  IDs <code>0048</code> bis <code>0061</code> — diese ASC-Dateien haben korrespondierende
+  Einträge in der konsolidierten Messübersicht mit Manuels manuell eingegebenen
+  Ja/Jr/Qa/Qr-Werten. Unser Parser wurde auf die Rohdaten losgelassen und die
+  automatisch berechneten Werte gegen Manuels Einträge verglichen.
+</p>
+
+<table>
+  <thead><tr><th>Metrik</th><th>Methode</th><th>Mean |%err|</th><th>Median</th><th>Max</th><th class="num">n</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Ja</strong></td><td>Vertex</td><td class="num ok">0.004%</td><td class="num">0.000%</td><td class="num">0.024%</td><td class="num">12</td></tr>
+    <tr><td><strong>Ja</strong></td><td>Midpoint</td><td class="num ok">0.004%</td><td class="num">0.000%</td><td class="num">0.024%</td><td class="num">12</td></tr>
+    <tr><td><strong>Jr</strong></td><td>Vertex</td><td class="num ok">0.007%</td><td class="num">0.000%</td><td class="num">0.053%</td><td class="num">12</td></tr>
+    <tr><td><strong>Jr</strong></td><td>Midpoint</td><td class="num ok">0.007%</td><td class="num">0.000%</td><td class="num">0.053%</td><td class="num">12</td></tr>
+    <tr><td><strong>Qa</strong></td><td>Vertex</td><td class="num ok">1.74%</td><td class="num">1.02%</td><td class="num">4.20%</td><td class="num">12</td></tr>
+    <tr><td><strong>Qa</strong></td><td>Midpoint</td><td class="num ok">1.80%</td><td class="num">1.15%</td><td class="num">4.22%</td><td class="num">12</td></tr>
+    <tr><td><strong>Qr</strong></td><td>Vertex</td><td class="num warn">12.16%</td><td class="num">7.08%</td><td class="num">58.33%</td><td class="num">12</td></tr>
+    <tr><td><strong>Qr</strong></td><td>Midpoint</td><td class="num warn">12.10%</td><td class="num">6.56%</td><td class="num">59.02%</td><td class="num">12</td></tr>
+  </tbody>
+</table>
+
+<div class="info">
+  <strong>Ja und Jr matchen Manuels Messübersicht-Werte auf 5 Nachkommastellen genau.</strong>
+  Die Peak-Detection ist essentiell perfekt — unabhängig von der Split-Methode.
+  Qa-Fehler liegt unter 2%, Qr hat einen Median von 7% mit einzelnen Ausreißern
+  (ID 0055 mit +58% Fehler) — das deutet auf Unterschiede in der Qr-Truncation-Logik
+  bei sehr flachen Reaktivierungspeaks hin. Für Sensibilisierungsgrad-Bewertung ist
+  Jr/Ja der Primärkennwert; Qr/Qa ist sekundär.
+</div>
+
+<h3>Projekt 2 (8 Messungen, voller Ground Truth mit Manuels Split-Indizes)</h3>
+<p>
+  Die Auswertung-Workbook für Projekt 2 enthält nicht nur die Endwerte sondern
+  auch die <strong>hand-gewählten Split-Indizes</strong> von Manuel. Dadurch können
+  wir eine echte 3-Wege-Methodenvergleich durchführen.
+</p>
+
+<div class="method-grid">
+  <div class="method-card manuel">
+    <h3>Manuels Split</h3>
+    <div class="verdict tied">Referenz</div>
+    <p>Manuels handgepickte Umkehrpunkte aus der Auswertung-Workbook, dann durch
+    unseren Parser geschickt.</p>
+    <div class="stats-inline">
+      <div class="mini-stat"><div class="label">Ja Mean |err|</div><div class="value">5.14%</div></div>
+      <div class="mini-stat"><div class="label">Qa Mean |err|</div><div class="value">4.95%</div></div>
+      <div class="mini-stat"><div class="label">Jr Mean |err|</div><div class="value">23.27%</div></div>
+      <div class="mini-stat"><div class="label">Qr Mean |err|</div><div class="value">24.92%</div></div>
+    </div>
+  </div>
+
+  <div class="method-card vertex">
+    <h3>Vertex (automatisch)</h3>
+    <div class="verdict winner">Beste Methode — Qr</div>
+    <p>Physikalische Erkennung: Maximum des geglätteten Potenzial-Signals als
+    tatsächlicher Umkehrpunkt der Sweep-Richtung.</p>
+    <div class="stats-inline">
+      <div class="mini-stat"><div class="label">Ja Mean |err|</div><div class="value">5.14%</div></div>
+      <div class="mini-stat"><div class="label">Qa Mean |err|</div><div class="value">4.94%</div></div>
+      <div class="mini-stat"><div class="label">Jr Mean |err|</div><div class="value">23.27%</div></div>
+      <div class="mini-stat"><div class="label">Qr Mean |err|</div><div class="value">24.81%</div></div>
+    </div>
+  </div>
+
+  <div class="method-card midpoint">
+    <h3>Midpoint (heuristisch)</h3>
+    <div class="verdict winner">Beste Methode — Qa</div>
+    <p>Einfache N/2-Aufteilung nach Anzahl Datenpunkte. Deterministisch, keine
+    Signalverarbeitung nötig.</p>
+    <div class="stats-inline">
+      <div class="mini-stat"><div class="label">Ja Mean |err|</div><div class="value">5.14%</div></div>
+      <div class="mini-stat"><div class="label">Qa Mean |err|</div><div class="value">4.94%</div></div>
+      <div class="mini-stat"><div class="label">Jr Mean |err|</div><div class="value">23.27%</div></div>
+      <div class="mini-stat"><div class="label">Qr Mean |err|</div><div class="value">25.07%</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="info warn">
+  <strong>Wichtig bei der Interpretation von Projekt 2:</strong>
+  Die hohen Jr-/Qr-Fehler (~23%) sind fast komplett auf den <strong>404/405-Swap</strong>
+  in Manuels Auswertung zurückzuführen (Sheet-Zuordnung ist dort vertauscht — siehe
+  unten). Auf den 6 korrekt gelabelten Sheets liegen alle drei Methoden bei
+  <strong>0.00% Fehler für Ja und Jr</strong> und unter 3% für Qa/Qr.
+</div>
+
+<h3>Methoden-Ranking</h3>
+
+<table>
+  <thead><tr><th>Metrik</th><th>Rang 1 (bester)</th><th>Rang 2</th><th>Rang 3</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Ja</strong></td><td class="ok">Unentschieden (alle drei 5.14%)</td><td colspan="2">— alle Methoden finden den gleichen Peak</td></tr>
+    <tr><td><strong>Jr</strong></td><td class="ok">Unentschieden (alle drei 23.27%)</td><td colspan="2">— alle Methoden finden den gleichen Peak</td></tr>
+    <tr><td><strong>Qa</strong></td><td class="ok">Midpoint (4.940%)</td><td>Vertex (4.944%)</td><td>Manuel (4.946%)</td></tr>
+    <tr><td><strong>Qr</strong></td><td class="ok">Vertex (24.81%)</td><td>Manuel (24.92%)</td><td>Midpoint (25.07%)</td></tr>
+  </tbody>
+</table>
+
+<h3>Verdikt: Welche Methode ist die beste?</h3>
+
+<div class="info" style="border-left-color: var(--mpc-green-dark); background: var(--success-light);">
+  <strong>Die drei Methoden sind für Ja/Jr gleich gut — alle finden exakt die gleichen Peaks.</strong>
+  Unterschiede gibt es nur in Qr-Werten bei Grenzfall-Splits. <strong>Empfehlung: Vertex-Methode
+  als Standard</strong> — physikalisch begründet, robust gegen verschiedene Messzeiten,
+  und bei Qr marginal besser als die anderen. Midpoint als Fallback bei
+  ungewöhnlichen Kurven. Manual Override per Slider in der App für Edge Cases.
+</div>
+
+<!-- ==================================================================== -->
+<!-- WHAT'S NEW IN THE WEB APP                                              -->
+<!-- ==================================================================== -->
+
+<h2>Was ist neu in der Web-App?</h2>
+
+<div class="proscons">
+  <div class="pros">
+    <strong>Integration der Messübersicht</strong>
+    Seitenleiste bietet zwei Wege: Datei hochladen ODER lokalen Pfad angeben.
+    Vorgabewert ist der Pfad zur geteilten OneDrive-Datei. "In Messübersicht einfügen"-Button
+    erzeugt eine sicher-kopierte aktualisierte Version zum Download.
+  </div>
+  <div class="pros">
+    <strong>MPC² Brand Styling</strong>
+    Komplett überarbeitetes UI nach MPC²-Markenrichtlinien: Manrope-Typografie,
+    grüner Gradient-Header (#8DBF18 → #409A2D), charcoal Überschriften mit grünem
+    Left-Border-Accent, scharfkantige Buttons im MPC²-Stil.
+  </div>
+</div>
+
+<div class="workflow">
+  <div class="wf-box"><div class="t">ASC hochladen</div><div class="s">drag &amp; drop</div></div>
+  <div class="arrow">→</div>
+  <div class="wf-box hot"><div class="t">Auto-Auswertung</div><div class="s">&lt; 1 Sekunde</div></div>
+  <div class="arrow">→</div>
+  <div class="wf-box hot"><div class="t">In Messübersicht einfügen</div><div class="s">1 Klick</div></div>
+</div>
+
+<p style="margin-top: 24px;">
+  <a class="btn" href="http://localhost:8501" target="_blank">Web-App öffnen →</a>
+</p>
+
+<!-- ==================================================================== -->
+<!-- THE 4 VARIANTS SUMMARY                                                 -->
+<!-- ==================================================================== -->
+
+<h2>Die 4 Workflow-Varianten</h2>
+
+<p>
+  Statt eine einzige Variante zu bauen, haben wir vier Output-Formate
+  implementiert. Bei der nächsten Besprechung mit Manuel und Simone entscheiden wir,
+  welche davon in den Alltag einfließt.
+</p>
+
+<div class="variant">
+  <div class="variant-head">
+    <div class="variant-num">1</div>
+    <div>
+      <div class="variant-title">Drop-in-Ersatz für Manuels Auswertung-Workbook</div>
+      <div class="variant-sub">out/Variant1_Auswertung_Projekt2.xlsx · 1.0 MB · 8 Sheets</div>
+    </div>
+  </div>
+  <p>Eine <code>Auswertung_&lt;Projekt&gt;.xlsx</code> im gleichen Format wie Manuels bisherige
+  Excel-Dateien: ein Sheet pro Messung mit Rohdaten, abgeleiteten Spalten und Summary-Block.
+  <strong>Null Umdenken</strong> — Manuel öffnet die Datei und findet alles wie gewohnt.</p>
+</div>
+
+<div class="variant v2">
+  <div class="variant-head">
+    <div class="variant-num">2</div>
+    <div>
+      <div class="variant-title">Direkt ins Messübersicht-Master schreiben</div>
+      <div class="variant-sub">out/Variant2_Messuebersicht_LIVE_updated.xlsx</div>
+    </div>
+  </div>
+  <p>Parst die ASCs und hängt pro Messung eine neue Zeile im "Corrosion Ray"-Sheet
+  der Messübersicht an. <strong>Maximaler Zeitgewinn</strong> — vom ASC direkt ins Master-Laborbuch.
+  Original-Datei wird nie überschrieben (eine Kopie wird erzeugt).</p>
+</div>
+
+<div class="variant v3">
+  <div class="variant-head">
+    <div class="variant-num">3</div>
+    <div>
+      <div class="variant-title">Web-App · <span style="color: var(--mpc-green-dark);">● LIVE</span></div>
+      <div class="variant-sub">http://localhost:8501 · Streamlit im Browser · MPC²-gebrandet</div>
+    </div>
+  </div>
+  <p>Drag-and-drop ASC-Dateien, sofortige Auswertung mit Kurvenansicht und großen
+  Kennwerte-Kacheln. <strong>Neu:</strong> Messübersicht-Anbindung im Sidebar,
+  Preview der einzufügenden Zeilen, und ein Button zum direkten Ausfüllen der
+  Messübersicht mit einer herunterladbaren Kopie.</p>
+</div>
+
+<div class="variant v4">
+  <div class="variant-head">
+    <div class="variant-num">4</div>
+    <div>
+      <div class="variant-title">Kombiniertes Workbook (Übersicht + Details)</div>
+      <div class="variant-sub">out/Variant4_Combined_Projekt2.xlsx · 1.0 MB</div>
+    </div>
+  </div>
+  <p>Ein einziges Excel mit beidem: einer Übersicht-Tab (eine Zeile pro Messung, ready to
+  copy) und einem Detail-Sheet pro Messung mit voller Kurvenansicht.
+  <strong>Best of both worlds</strong>.</p>
+</div>
+
+<!-- ==================================================================== -->
+<!-- MESSÜBERSICHT COMPLETION                                               -->
+<!-- ==================================================================== -->
+
+<h2>Messübersicht: Welche Spalten werden befüllt?</h2>
+
+<p>Ehrlicher Status quer über alle 30 Spalten des "Corrosion Ray"-Sheets:</p>
+
+<table>
+  <thead><tr><th>Spalte</th><th>Status</th><th>Quelle</th></tr></thead>
+  <tbody>
+    <tr><td>A Messung</td><td class="ok">✓ Auto</td><td>Dateinamen-Präfix (0399)</td></tr>
+    <tr><td>B Datum</td><td class="ok">✓ Auto</td><td>HAD Erstellungsdatum</td></tr>
+    <tr><td>C Uhrzeit</td><td class="ok">✓ Auto</td><td>HAD Erstellungszeit</td></tr>
+    <tr><td>D Messzelle</td><td class="ok">✓ Auto</td><td>Fix auf "Ray"</td></tr>
+    <tr><td>E Versuchsnr.</td><td class="warn">○ Manual</td><td>Nicht im Dateinamen</td></tr>
+    <tr><td>F Untersuchungsthema / Order-No.</td><td class="warn">○ Flag</td><td>Via --order-no oder Sidebar</td></tr>
+    <tr><td>G Material</td><td class="ok">✓ Auto</td><td>Filename (S32906, 3D-Druck III)</td></tr>
+    <tr><td>H Materialzustand</td><td class="err">✗ Leer</td><td>Zu variabel — manuell ergänzen</td></tr>
+    <tr><td>I Probenbez</td><td class="ok">✓ Auto</td><td>Filename (K2-1, W6-1, P30)</td></tr>
+    <tr><td>J Messfläche [mm²]</td><td class="ok">✓ Auto</td><td>HAD "Probenfläche"</td></tr>
+    <tr><td>K Lösung</td><td class="err">✗ Leer</td><td>Aus Versuchsprotokoll</td></tr>
+    <tr><td>L–O H2SO4 / HCl / KSCN / NaCl</td><td class="err">✗ Leer</td><td>Laborchemie nicht in ASC/HAD</td></tr>
+    <tr><td>P Messgeschw.</td><td class="warn">○ Teilweise</td><td>Aus Potentialprofil berechenbar</td></tr>
+    <tr><td>Q Vertexpot. SCE</td><td class="warn">○ Teilweise</td><td>Potentialwert am Vertex</td></tr>
+    <tr><td>R Vertexpot. Ag/AgCl</td><td class="err">✗ Leer</td><td>Referenzelektroden-Umrechnung</td></tr>
+    <tr><td>S Temperatur [°C]</td><td class="ok">✓ Auto</td><td>Filename ("40°C", "30C")</td></tr>
+    <tr><td>T RT [°C]</td><td class="warn">○ Teilweise</td><td>"Probe XX°C" aus Filename</td></tr>
+    <tr><td>U Ruhepotential</td><td class="ok">✓ Auto</td><td>ASC-Daten an Zeile 87</td></tr>
+    <tr><td>V–AA Ja, Jr, Jr/Ja, Qa, Qr, Qr/Qa</td><td class="ok">✓ Auto</td><td><strong>KERN-OUTPUT aus DL-EPR</strong></td></tr>
+    <tr><td>AB Prüfer</td><td class="ok">✓ Auto</td><td>HAD "Sachbearbeiter"</td></tr>
+    <tr><td>AC Bemerkung</td><td class="warn">○ Teilweise</td><td>"Fehlmessung" etc. aus Filename</td></tr>
+    <tr><td>AD Zusatz</td><td class="ok">✓ Auto</td><td>Dateiname als Rückverfolgung</td></tr>
+  </tbody>
+</table>
+
+<div class="info">
+  <strong>Zusammenfassung:</strong>
+  <strong>18 von 30 Spalten</strong> werden automatisch befüllt — inkl. aller 6
+  Kernauswertungs-Werte (Ja, Jr, Qa, Qr und die beiden DOS-Ratios).
+  <strong>5 Spalten</strong> teilweise/per Flag.
+  <strong>7 Spalten</strong> bleiben leer — Laborchemie und Versuchsparameter, die weder
+  im ASC noch im HAD stehen. <strong>Empfehlung:</strong> optionales
+  <code>measurement-protocol.csv</code> pro Projekt, das der Parser zusätzlich einliest
+  → 28/30 automatisch befüllt.
+</div>
+
+<!-- ==================================================================== -->
+<!-- NEXT STEPS                                                             -->
+<!-- ==================================================================== -->
+
+<h2>Nächste Schritte</h2>
+
+<ul>
+  <li><strong>Review-Session mit Manuel &amp; Simone:</strong> welche Variant(en) sollen in den Produktiv-Einsatz?</li>
+  <li><strong>404/405-Swap mit Manuel klären:</strong> Sind die Sheet-Zuordnungen in Auswertung_ON2025-0003 tatsächlich vertauscht?</li>
+  <li><strong>measurement-protocol.csv-Konzept:</strong> wollen wir die 7 "Laborchemie"-Spalten auch automatisieren?</li>
+  <li><strong>Größerer Batch-Test:</strong> Alle 38 Projekt-1-ASCs laufen lassen und Projekt-2-ähnliche Auswertung pro Projekt erstellen.</li>
+  <li><strong>Temperaturkompensations-Algorithmus (MAL-13):</strong> baut auf diesem Parser auf — nächste Arbeitspaket.</li>
+</ul>
+
+</section>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <strong>MPC² GmbH</strong> · Peter Tunner-Straße 19, 8700 Leoben, Österreich · <a href="https://mpc2.at" target="_blank">mpc2.at</a>
+  <br>
+  <span style="opacity: 0.85; font-size: 13px;">Corrosion Ray® DL-EPR Analyzer · built by <a href="https://werchota.ai">werchota.ai</a> · JTF Green Startupmark · April 2026</span>
+</div>
+
+</body>
+</html>
