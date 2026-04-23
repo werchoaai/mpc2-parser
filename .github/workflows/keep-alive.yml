@@ -1,0 +1,26 @@
+name: Keep Streamlit App Awake
+
+# Streamlit Community Cloud hibernates apps after ~7 days of zero traffic.
+# This workflow pings the app every 5 days to keep the container warm.
+
+on:
+  schedule:
+    # Every 5 days at 09:00 UTC (11:00 Vienna time)
+    - cron: '0 9 */5 * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping MPC2 Corrosion Ray app
+        run: |
+          echo "Pinging https://mpc2-corrosion-ray.streamlit.app/ ..."
+          STATUS=$(curl -sS -o /dev/null -w "%{http_code}" -L -A "Mozilla/5.0 keepalive" --max-time 120 "https://mpc2-corrosion-ray.streamlit.app/")
+          echo "HTTP status: $STATUS"
+          if [ "$STATUS" = "200" ] || [ "$STATUS" = "303" ]; then
+            echo "OK — app is reachable."
+          else
+            echo "WARNING — unexpected status $STATUS. Manual check needed."
+            exit 1
+          fi
