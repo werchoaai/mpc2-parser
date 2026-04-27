@@ -2,7 +2,7 @@
 
 Vier Tabs:
   1. Analyse        — ASC hochladen → Werte + Diagramme + Integritäts-Score → Downloads
-  2. Methodik       — Erkläruhng der Split-Methoden mit Vor-/Nachteilen
+  2. Methodik       — Erklärung der Split-Methoden mit Vor-/Nachteilen
   3. Genauigkeit    — Validierungs-Ergebnisse Projekt A, B und kombiniert
   4. Datenqualität  — Gefundene Ungereimtheiten (Sheet-Swap, Ausreißer)
 
@@ -436,10 +436,8 @@ pre { border-left: 3px solid var(--mpc-green-light); padding: 12px 16px !importa
 st.markdown(MPC2_CSS, unsafe_allow_html=True)
 
 # Inject a MutationObserver-based translation that replaces English Streamlit
-# Inject JS to translate Streamlit UI text nodes to German using st.html().
-# st.html() supports <script> tags directly (Streamlit >= 1.31).
-# st.html() used below (streamlit >= 1.31)
-
+# text nodes with German. This uses st.html with JavaScript enabled so we can
+# avoid the older iframe-based components helper.
 st.html("""
 <script>
 (function() {
@@ -462,14 +460,14 @@ st.html("""
       }
     });
   }
-  const target = window.parent.document.body || document.body;
+  const target = document.body;
   translate(target);
   new MutationObserver(() => translate(target)).observe(target, {
     childList: true, subtree: true, characterData: true
   });
 })();
 </script>
-""", height=0)
+""", width="content", unsafe_allow_javascript=True)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -684,7 +682,7 @@ with tab_analyse:
         st.markdown("# Corrosion Ray Messdaten-Auswertung")
     with col_reset:
         st.markdown("<div style='height:42px;'></div>", unsafe_allow_html=True)
-        if st.button("↻ Neu starten", width='stretch', key="reset_btn",
+        if st.button("↻ Neu starten", width="stretch", key="reset_btn",
                      help="Hochgeladene Dateien entfernen und Analyse zurücksetzen."):
             st.session_state.upload_nonce = nonce + 1
             # Auch per-Datei-Slider & Messübersicht-Checkbox aufräumen,
@@ -802,7 +800,7 @@ with tab_analyse:
                             x=alt.X(field="t_s", title="Zeit [s]", type="quantitative"),
                             y=alt.Y(field="E_mV", title="Potenzial [mV]", type="quantitative"),
                         ).properties(height=260, background="white"),
-                        width='stretch', theme=None,
+                        width="stretch", theme=None,
                     )
                 with cc_raw[1]:
                     st.markdown("**Stromdichte-Verlauf (Rohdaten)**")
@@ -813,7 +811,7 @@ with tab_analyse:
                             y=alt.Y(field="J_mAcm2", title="Stromdichte J [mA/cm²]",
                                     type="quantitative"),
                         ).properties(height=260, background="white"),
-                        width='stretch', theme=None,
+                        width="stretch", theme=None,
                     )
                 st.markdown("**Polarisation (E vs J) — Rohdaten, keine Phasen-Färbung**")
                 df_loop_raw = pd.DataFrame({
@@ -829,7 +827,7 @@ with tab_analyse:
                                 type="quantitative"),
                         order="t_s:Q",
                     ).properties(height=320, background="white"),
-                    width='stretch', theme=None,
+                    width="stretch", theme=None,
                 )
                 continue
 
@@ -913,11 +911,11 @@ with tab_analyse:
             with cc[0]:
                 st.markdown("**Potenzial-Rampe** — Vorwärts bis Vertex, dann Rückwärts")
                 st.altair_chart(_make_potential_chart(asc, result.split_index),
-                                width='stretch', theme=None)
+                                width="stretch", theme=None)
             with cc[1]:
                 st.markdown("**Stromdichte-Verlauf** — mit markierten Peaks Ja und Jr")
                 st.altair_chart(_make_current_chart(asc, result.ja_index, result.jr_index, result.split_index),
-                                width='stretch', theme=None)
+                                width="stretch", theme=None)
 
             st.markdown("**DL-EPR-Polarisationsschleife** — klassische Darstellung Potenzial vs. Stromdichte")
             loop_df = pd.DataFrame({
@@ -937,7 +935,7 @@ with tab_analyse:
                 ), legend=alt.Legend(title=None, orient="top-left")),
                 order="t_s:Q",
             ).properties(height=320, background="white")
-            st.altair_chart(loop_chart, width='stretch', theme=None)
+            st.altair_chart(loop_chart, width="stretch", theme=None)
 
             # Copy-paste
             tab_sep = "\t".join([
@@ -1019,7 +1017,7 @@ with tab_analyse:
                         data=fh.read(),
                         file_name=f"Auswertung_{ts}.xlsx",
                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        width='stretch',
+                        width="stretch",
                     )
             except Exception as e:
                 st.error(f"Auswertung konnte nicht erstellt werden: {e}")
@@ -1046,7 +1044,7 @@ with tab_analyse:
                     value=False, key="overwrite_mu",
                 )
                 if st.button("Messübersicht aktualisieren & herunterladen",
-                             width='stretch'):
+                             width="stretch"):
                     try:
                         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
                         output_path = Path(tempfile.gettempdir()) / f"Messuebersicht_updated_{ts}.xlsx"
@@ -1092,7 +1090,7 @@ with tab_analyse:
                                 data=fh.read(),
                                 file_name=f"Messuebersicht_updated_{ts}.xlsx",
                                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                                width='stretch',
+                                width="stretch",
                             )
                     except Exception as e:
                         st.error(f"Fehler beim Schreiben der Messübersicht: {e}")
@@ -1216,7 +1214,7 @@ Zusammen ergibt das **20 validierte Messungen**.
                         "Median": f"{np.median(errs):.3f}%",
                         "Maximum": f"{np.max(errs):.2f}%",
                     })
-        st.dataframe(pd.DataFrame(rows), hide_index=True, width='stretch')
+        st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
 
         st.markdown("""
 <div class="mpc-info" style="border-left-color:#409A2D; background:#EAF4D8;">
@@ -1241,7 +1239,7 @@ Qa-Fehler unter 2%. Qr-Median 7% — Ausreißer ziehen den Mittelwert hoch.
                         "Median": f"{np.median(errs):.3f}%",
                         "Maximum": f"{np.max(errs):.2f}%",
                     })
-        st.dataframe(pd.DataFrame(rows2), hide_index=True, width='stretch')
+        st.dataframe(pd.DataFrame(rows2), hide_index=True, width="stretch")
 
         st.markdown("""
 <div class="mpc-info warn">
@@ -1273,7 +1271,7 @@ für Ja/Jr und unter 3% für Qa/Qr.
                         "Median": f"{np.median(errs):.3f}%",
                         "Maximum": f"{np.max(errs):.2f}%",
                     })
-        st.dataframe(pd.DataFrame(rows_c), hide_index=True, width='stretch')
+        st.dataframe(pd.DataFrame(rows_c), hide_index=True, width="stretch")
 
 
 # ─── TAB 4 — DATENQUALITÄT ──────────────────────────────────────────────────
@@ -1339,7 +1337,7 @@ Manuels Messübersicht-Eintrag. Mögliche Ursachen:
                         "Fehler": f"{err:+.1f}%",
                     })
         if outliers:
-            st.dataframe(pd.DataFrame(outliers), hide_index=True, width='stretch')
+            st.dataframe(pd.DataFrame(outliers), hide_index=True, width="stretch")
 
     st.markdown("""
 <div class="mpc-info warn">
